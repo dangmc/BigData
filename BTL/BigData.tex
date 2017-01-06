@@ -1,0 +1,174 @@
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+
+\documentclass{beamer}
+
+% There are many different themes available for Beamer. A comprehensive
+% list with examples is given here:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+% You can uncomment the themes below if you would like to use a different
+% one:
+
+\usetheme{Madrid}
+\usepackage{multirow}
+\usepackage{graphicx} %package to manage images
+\graphicspath{ {/home/dangmc/Documents/Learning/20161/BigData/BTL/Image/} }
+\usepackage[utf8]{inputenc}
+\usepackage[vietnam]{babel}
+\usepackage{enumitem}
+\usepackage{algorithm,algorithmic}
+\title[Recommendation System]{Xây dựng hệ thống dự đoán sự đánh giá một bộ phim của người xem}
+
+% A subtitle is optional and this may be deleted
+\subtitle{}
+
+\author[DangMc, P.H.Hạnh \& H.M.Công]{\qquad  Sinh viên thực hiện \\ \qquad \vspace{1cm}Đặng Mạnh Cường \ Phan Thị Hồng Hạnh  \\
+\qquad Giáo viên hướng dẫn \\ 
+\qquad  TS.Trần Vĩnh Đức}
+
+\institute[HUST] % (optional, but mostly needed)
+{
+ % from CNTT2-04\\
+  %Ha Noi University of Science and Technology
+  }
+% - Give the names in the same order as the appear in the paper.
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\date{\qquad Hà Nội, 09-1-2017}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>{Mục Lục}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+\newenvironment<>{varblock}[2][\textwidth]{%
+  \setlength{\textwidth}{#1}
+  \begin{actionenv}#3%
+    \def\insertblocktitle{#2}%
+    \par%
+    \usebeamertemplate{block begin}}
+  {\par%
+    \usebeamertemplate{block end}%
+  \end{actionenv}}
+% Let's get started
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Mục Lục}
+  \tableofcontents
+  % You might wish to add the option [pausesections]
+\end{frame}
+
+% Section and subsections will appear in the presentation overview
+% and table of contents.
+\section{Nội dung đề tài}
+\begin{frame}{Nội dung đề tài}
+\begin{itemize}[label = \textbullet]
+	\item Xây dựng hệ thống có khả năng dự đoán sự đánh giá (rating) của người xem (user) đối với một bộ phim (movie)
+	\begin{itemize}[label = \textendash]
+		\item Đánh giá từ 0 đến 5 sao	
+	\end{itemize}
+	\item Dựa vào lịch sử đánh giá của người xem đối với mỗi bộ
+ phim - tập huyến luyện
+ 	\begin{itemize}[label = \textendash]
+			\item Danh sách bộ 3 $(i, j, k)$ thể hiện người xem $i$ đánh giá bộ phim $j$ $k$ sao 
+		\end{itemize}		
+\end{itemize}
+\end{frame}
+\begin{frame}{Nội dung đề tài}
+	Đánh giá hiệu quả của hệ thống:
+		\begin{itemize}[label = \textbullet]
+			\item Sử dụng tập Test: tương tự tập huấn luyện
+			\item Gọi R là ma trận rating của tập Test \\
+			\begin{center}
+				$RMSE = \sqrt{\frac{\sum_{(i, x) \in R}{(r_{xi} - \hat{r_{xi}})^2}}{|R|}} \rightarrow$ $MIN$ \\
+
+				\begin{itemize}[label = \textendash]
+					\item $r_{xi}$ là đánh giá của người xem x đối với bộ phim i do hệ thống dự đoán 
+					\item $\hat{r_{xi}}$ là đánh giá thực của người xem x đối với bộ phim i 
+				\end{itemize}
+			\end{center}
+		\end{itemize}
+\end{frame}
+\section{Mô hình}
+\subsection{Collaborative filtering + content base}
+\begin{frame}
+
+\end{frame}
+\subsection{Nhân tố ẩn}
+\begin{frame}{Nhân tố ẩn}
+	\begin{itemize}[label = \textbullet]
+		\item Gọi m là số lượng người xem, n là số lượng phim, k là số nhân tố ẩn
+		\item $P_{kxm}$ là ma trận đặc tính tiềm ẩn của người xem
+		\item $Q_{kxn}$ là ma trận đặc tính tiềm ẩn của các bộ phim
+		\item Cần tìm $P,Q$ sao cho $P^{T}Q \approx R$
+	\end{itemize}
+\end{frame}
+\begin{frame}{Nhân tố ẩn}
+	Cost function: \\ 
+		$E = \sum\limits_{training}{(r_{xi} - \hat{r_{xi}})^2 + \frac{\lambda}{2}[\sum\limits_{x}{||P||^2} + \sum\limits_{i}{||Q||^2} + \sum\limits_{x}{||U||^2} + \sum\limits_{i}{||I||^2}]}$
+	Trong đó: \\
+	\begin{itemize}[label = \textbullet]
+		\item $\hat{r_{xi}} = \mu + U_{x} + I_{i} + P_x^TQ_{i}$
+		\begin{itemize}[label = \textendash]
+			\item $\mu$ là giá trị trung bình rating của người xem	
+			\item $U_{x}$ là giá trị bias của người xem x
+			\item $I_{i}$ là giá trị bias của bộ phim i
+		\end{itemize}
+		\item $\lambda$ là tham số điều khiển 
+	\end{itemize}
+\end{frame}
+\begin{frame}{Stochastic gradient descent}
+	Đặt $W = \frac{\lambda}{2}[\sum\limits_{x}{||P||^2} + \sum\limits_{i}{||Q||^2} + \sum\limits_{x}{||U||^2} + \sum\limits_{i}{||I||^2}] $ \\
+	$E_{xi} = [r_{xi} - (\mu + U_x + I_i + \sum\limits_{t = 1}^k{P_{tx}Q_{it}})]^2 + W$ \\
+	$\varepsilon_{xi} = 2 * (r_{xi} - \mu - U_x - I_i - \sum\limits_{t = 1}^k{P_{tx}Q_{it}})$
+	\begin{itemize}[label = \textbullet]
+		\item $P_{tx} = P_{tx} - lr\frac{\partial E_{xi}}{\partial P{tx}} = P_{tx} - lr(-\varepsilon_{xi}Q_{it} + \lambda P_{tx})$
+		\item $Q_{it} = Q_{it} - lr\frac{\partial E_{xi}}{\partial Q{it}} = Q_{it} - lr(-\varepsilon_{xi}P_{tx} + \lambda Q_{it})$
+		\item $U_x = U_x - lr\frac{\partial E_{xi}}{\partial U_x} = U_x - lr(-\varepsilon_{xi} + \lambda U_x)$
+		\item $I_i = I_i - lr\frac{\partial E_{xi}}{\partial I_i} = I_i - lr(-\varepsilon_{xi} + \lambda I_i)$
+	\end{itemize}
+
+\end{frame}
+\begin{frame}{Stochastic gradient descent}{Nhân tố ẩn}
+	\begin{algorithm}[H]
+		\begin{algorithmic}[1]
+			\STATE $Initialize$ $P, Q, U, I$
+			\FOR{$(x, i) \in training$}
+				\STATE $\varepsilon_{xi} = 2 * (r_{xi} - \mu - U_x - I_i - P_x^TQ_i)$
+				\STATE $P_x = P_x + lr*(\varepsilon_{xi}Q_i - \lambda P_x)$
+				\STATE $Q_i = Q_i + lr*(\varepsilon_{xi}P_x - \lambda Q_i)$
+				\STATE $U_x = U_x + lr*(\varepsilon_{xi} - \lambda U_x)$
+				\STATE $I_i = I_i + lr*(\varepsilon_{xi} - \lambda I_i)$
+			\ENDFOR
+		\end{algorithmic}
+		\caption{Stochastic gradient descent}
+		\label{alg:seq}
+	\end{algorithm}
+\end{frame}
+\section{Kết quả thực nghiệm}
+\begin{frame}{Bộ dữ liệu}
+	\begin{itemize}[label = \textbullet]
+		\item MovieLen - 100k: bộ dữ liệu gồm 100000 rating của 942 người xem trên 1692 bộ phim
+		\item MovieLen - latest: bộ dữ liệu gồm hơn 24 triệu rating của 256000 người xem trên 40110 bộ phim
+	\end{itemize}
+\end{frame}
+\begin{frame}{Kết quả}
+
+\end{frame}
+\end{document}
+
+
