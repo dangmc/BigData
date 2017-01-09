@@ -9,8 +9,6 @@ header = ['user_id', 'item_id', 'rating', 'timestamp']
 df = pd.read_csv(path + 'u.data', sep='\t', names=header)
 n_users = df.user_id.unique().shape[0]
 n_items = df.item_id.unique().shape[0]
-print 'Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items)
-
 
 train_data, test_data = cv.train_test_split(df, test_size=0.25)
 train_data = pd.DataFrame(train_data)
@@ -28,35 +26,41 @@ T = np.zeros((n_users, n_items))
 for line in test_data.itertuples():
     T[line[1]-1, line[2]-1] = line[3]
 
-# Index matrix for training data
 I = R.copy()
 I[I > 0] = 1
 I[I == 0] = 0
 
-average_rating /= np.sum(I)
-
-# Index matrix for test data
 I2 = T.copy()
 I2[I2 > 0] = 1
 I2[I2 == 0] = 0
-
+average_rating /= np.sum(I)
+print 'average_rating = %f' %(average_rating)
 # Predict the unknown ratings through the dot product of the latent features for users and items
 def prediction(P, Q, user, item):
     return np.dot(P.T, Q) \
            + Bu[user] + Bi[item] + average_rating
 
 lmbda = 0.1 # Regularisation weight
-k = 50  # Dimension of the latent feature space
+k = 40  # Dimension of the latent feature space
 m, n = R.shape  # Number of users and items
 n_epochs = 200  # Number of epochs
-gamma = 0.0002  # Learning rate
+gamma = 0.002  # Learning rate
 
 P = np.random.rand(k, m) # Latent user feature matrix
 Q = np.random.rand(k, n) # Latent movie feature matrix
 Bu = np.zeros(m) # Bias for users
 Bi = np.zeros(n) # Bias for movies
 
-print average_rating
+# Calculate the RMSE
+"""
+def compute_rmse(E, Q, P):
+    sum = 0
+    for u in xrange(m):
+        for i in xrange(n):
+            if (E[u, i] > 0):
+                sum += (E[u, i] - prediction(P[:, u], Q[:, i], u, i)) ** 2
+    return np.sqrt(sum / len(R[R > 0]))
+"""
 def prediction_matrix(R, P, Q):
     E = R.copy();
 
@@ -68,7 +72,6 @@ def prediction_matrix(R, P, Q):
 # Calculate the RMSE
 def rmse(I, R, Q, P):
     return np.sqrt(np.sum((I * prediction_matrix(R, P, Q))**2)/len(R[R > 0]))
-
 train_errors = []
 test_errors = []
 
@@ -79,8 +82,8 @@ for epoch in xrange(n_epochs):
         e = R[u, i] - prediction(P[:, u], Q[:, i], u, i)  # Calculate error for gradient
         P[:, u] += gamma * (e * Q[:, i] - lmbda * P[:, u]) # Update latent user feature matrix
         Q[:, i] += gamma * (e * P[:, u] - lmbda * Q[:, i])  # Update latent movie feature matrix
-        Bu[u] -= gamma * (e + lmbda * Bu[u]) # Update bias for users
-        Bi[i] -= gamma * (e + lmbda * Bi[i]) # Update bias for movies
+        Bu[u] += gamma * (e - lmbda * Bu[u]) # Update bias for users
+        Bi[i] += gamma * (e - lmbda * Bi[i]) # Update bias for movies
     train_rmse = rmse(I, R, Q, P) # Calculate root mean squared error from train dataset
     test_rmse = rmse(I2, T, Q, P) # Calculate root mean squared error from test dataset
     train_errors.append(train_rmse)
@@ -90,23 +93,11 @@ for epoch in xrange(n_epochs):
     print 'Test RMSE = %f' %(test_rmse)
 # Check performance by plotting train and test errors
 
-plt.plot(range(n_epochs), train_errors, marker='o', label='Training Data');
-plt.plot(range(n_epochs), test_errors, marker='v', label='Test Data');
-plt.title('SGD-WR Learning Curve')
+plt.plot(range(n_epochs), train_errors, marker='.', label='Training Data');
+plt.plot(range(n_epochs), test_errors, marker='.', label='Test Data');
+plt.title('Latent factor - ML100k')
 plt.xlabel('Number of Epochs');
 plt.ylabel('RMSE');
 plt.legend()
 plt.grid()
 plt.show()
-
-# Calculate prediction matrix R_hat (low-rank approximation for R)
-"""
-R = pd.DataFrame(R)
-R_hat=pd.DataFrame(prediction(P,Q))
-
-# Compare true ratings of user 17 with predictions
-ratings = pd.DataFrame(data=R.loc[16,R.loc[16,:] > 0]).head(n=5)
-ratings['Prediction'] = R_hat.loc[16,R.loc[16,:] > 0]
-ratings.columns = ['Actual Rating', 'Predicted Rating']
-ratings
-"""

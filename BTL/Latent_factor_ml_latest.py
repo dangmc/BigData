@@ -75,9 +75,19 @@ def rmse(filename, Q, P):
 train_errors = []
 test_errors = []
 
+def     save_latent_matrix(filename, m, n, M):
+    f = open(path + filename, 'w')
+    for i in xrange(m):
+        for j in xrange(n):
+            f.write(str(i) + " " + str(j) + " " + str(M[i, j]))
+    f.close()
+
+
 for epoch in xrange(n_epochs):
-    if (epoch > 40):
+    if (epoch == 40):
         gamma = 0.00002;
+        save_latent_matrix('userMatrix.txt', k, m, P)
+        save_latent_matrix('movieMatrix.txt', k, n, Q)
     with open(path + 'train.csv') as csv_file:
         reader = csv.DictReader(csv_file)
         line = 0
@@ -91,8 +101,8 @@ for epoch in xrange(n_epochs):
             e = rating - prediction(P[:, u], Q[:, i], u, i)  # Calculate error for gradient
             P[:, u] += gamma * (e * Q[:, i] - lmbda * P[:, u]) # Update latent user feature matrix
             Q[:, i] += gamma * (e * P[:, u] - lmbda * Q[:, i])  # Update latent movie feature matrix
-            Bu[u] -= gamma * (e + lmbda * Bu[u]) # Update bias for users
-            Bi[i] -= gamma * (e + lmbda * Bi[i]) # Update bias for movies
+            Bu[u] += gamma * (e - lmbda * Bu[u]) # Update bias for users
+            Bi[i] += gamma * (e - lmbda * Bi[i]) # Update bias for movies
     train_rmse = rmse('train.csv', Q, P) # Calculate root mean squared error from train dataset
     test_rmse = rmse('test.csv', Q, P) # Calculate root mean squared error from test dataset
     train_errors.append(train_rmse)
@@ -110,14 +120,3 @@ plt.ylabel('RMSE');
 plt.legend()
 plt.grid()
 plt.show()
-"""
-# Calculate prediction matrix R_hat (low-rank approximation for R)
-R = pd.DataFrame(R)
-R_hat=pd.DataFrame(prediction(P,Q))
-
-# Compare true ratings of user 17 with predictions
-ratings = pd.DataFrame(data=R.loc[16,R.loc[16,:] > 0]).head(n=5)
-ratings['Prediction'] = R_hat.loc[16,R.loc[16,:] > 0]
-ratings.columns = ['Actual Rating', 'Predicted Rating']
-ratings
-"""
