@@ -20,8 +20,9 @@
 
 \usetheme{Madrid}
 \usepackage{multirow}
+\usepackage{cases} 
 \usepackage{graphicx} %package to manage images
-\graphicspath{ {/home/dangmc/Documents/Learning/20161/BigData/BTL/Image/} }
+\graphicspath{ {/home/dangmc/Documents/Learning/20161/BigData/BTL/Report/Image/} }
 \usepackage[utf8]{inputenc}
 \usepackage[vietnam]{babel}
 \usepackage{enumitem}
@@ -31,7 +32,7 @@
 % A subtitle is optional and this may be deleted
 \subtitle{}
 
-\author[DangMc, P.H.Hạnh \& H.M.Công]{\qquad  Sinh viên thực hiện \\ \qquad \vspace{1cm}Đặng Mạnh Cường \ Phan Thị Hồng Hạnh  \\
+\author[DangMc, P.H.Hạnh]{\qquad  Sinh viên thực hiện \\ \qquad \vspace{1cm}Đặng Mạnh Cường \ Phan Thị Hồng Hạnh  \\
 \qquad Giáo viên hướng dẫn \\ 
 \qquad  TS.Trần Vĩnh Đức}
 
@@ -78,53 +79,140 @@
 \begin{frame}{Nội dung đề tài}
 \begin{itemize}[label = \textbullet]
 	\item Xây dựng hệ thống có khả năng dự đoán sự đánh giá (rating) của người xem (user) đối với một bộ phim (movie)
-	\begin{itemize}[label = \textendash]
-		\item Đánh giá từ 0 đến 5 sao	
-	\end{itemize}
-	\item Dựa vào lịch sử đánh giá của người xem đối với mỗi bộ
- phim - tập huyến luyện
+		
+	\item Dựa vào lịch sử đánh giá của người xem đối với các bộ
+ phim - tập huấn luyện
  	\begin{itemize}[label = \textendash]
-			\item Danh sách bộ 3 $(i, j, k)$ thể hiện người xem $i$ đánh giá bộ phim $j$ $k$ sao 
+			\item Ma trận rating $R_{mxn}$, m là số lượng người xem, n là số lượng bộ phim
+			\item Nếu $R_{xi} \ne null$, người xem x đánh giá phim i với giá trị $R_{xi}$ sao ($R_{xi} \in [0, 5]$)
+			\item Nếu $R_{xi} = null$, người xem x chưa đánh giá phim i   
 		\end{itemize}		
 \end{itemize}
 \end{frame}
 \begin{frame}{Nội dung đề tài}
 	Đánh giá hiệu quả của hệ thống:
 		\begin{itemize}[label = \textbullet]
-			\item Sử dụng tập Test: tương tự tập huấn luyện
-			\item Gọi R là ma trận rating của tập Test \\
+			\item Sử dụng tập Test: Tập T gồm các cặp người dùng, bộ phim mà hệ thống cần dự đoán
 			\begin{center}
-				$RMSE = \sqrt{\frac{\sum_{(i, x) \in R}{(r_{xi} - \hat{r_{xi}})^2}}{|R|}} \rightarrow$ $MIN$ \\
+				$RMSE = \sqrt{\frac{\sum_{(i, x) \in T}{(T_{xi} - \hat{T_{xi}})^2}}{|T|}} \rightarrow$ $MIN$ \\
 
 				\begin{itemize}[label = \textendash]
-					\item $r_{xi}$ là đánh giá của người xem x đối với bộ phim i do hệ thống dự đoán 
-					\item $\hat{r_{xi}}$ là đánh giá thực của người xem x đối với bộ phim i 
+					\item $\hat{T_{xi}}$ là đánh giá của người xem x đối với bộ phim i do hệ thống dự đoán 
+					\item $T_{xi}$ là đánh giá thực của người xem x đối với bộ phim i 
 				\end{itemize}
 			\end{center}
 		\end{itemize}
 \end{frame}
 \section{Mô hình}
-\subsection{Collaborative filtering + content base}
-\begin{frame}
+\subsection{Lọc cộng tác}
+\begin{frame}{Ý tưởng}{Lọc cộng tác}
+	\begin{itemize}[label = \textbullet]
+		\item $U$ là tập người xem
+		\item $M$ là tập các bộ phim
+		\item Xét người dùng x và bộ phim i
+		\item Trong tập $M(x)$ gồm những bộ phim mà người xem x đã rating, tìm tập $H(x,i)$ gồm những bộ phim có rating tương đồng nhất với i. 
+		\item Ước lượng rating của người xem x đối với bộ phim i dựa vào tập $H(x,i)$
+	\end{itemize}
+
+\end{frame}
+\begin{frame}{Công thức đo độ tương đồng}{Lọc cộng tác}
+	\begin{itemize}[label = \textbullet]
+		\item Gọi $sim(i,j)$ là độ tương đồng giữa i và j 
+		\item Sử dụng độ đo $cosine$:
+		$sim(i, j) = cos(R_i, R_j) = \frac{R_iR_j}{||R_i||||R_j||}$ 
+		
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.7\textwidth]{cosine}
+		\label{fig:img1}
+	\end{figure}
+	\hspace{2cm}
+	$sim(A, B) = \frac{4x5}{\sqrt{4^2+5^2+1^2}\sqrt{5^2+5^2+4^2}} = 0.38$
+	\item Khi $sim(i,j)$ càng lớn thì độ tương đồng giữa i và j càng cao  
+	\end{itemize}
+\end{frame}
+\begin{frame}{Tìm tập tương đồng}{Lọc cộng tác}
+	\begin{itemize}[label = \textbullet]
+		\item Với mỗi bộ phim $i$, tìm tập $N(i) = \{j \in M | sim(i, j) \ge 0.2 \}$ \\ \hspace{2cm}
+		$\Rightarrow H(x,i) = N(i) \cap M(x) $
+		\item Làm sao để tìm tập N(i)?
+			\begin{itemize}[label = \textendash]
+				\item sử dụng thuật toán tầm thường $\Rightarrow$ độ phức tạp quá lớn
+				\item sử dụng Minhashing + Locality Sensitive Hashing
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+\begin{frame}{Tìm tập tương đồng}
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.7\textwidth]{lsh}
+		\label{fig:img1}
+	\end{figure}
+\end{frame}
+\begin{frame}{Minhashing}{LSH}
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.5\textwidth]{mh}
+		\label{fig:img1}
+	\end{figure}
+	\begin{itemize}[label = \textbullet]
+		\item $R_i$ là vector rating của bộ phim i ($|R_i| = m$)
+		\item Lấy 1 tập ngẫu nhiên các vector $\{v_1, v_2,...,v_k\}$ kích thước m, các vector chỉ chứa 2 giá trị -1 hoặc 1
+		\item Xây dựng vector chữ ký $S_i$ cho bộ phim i như sau:
+		\[
+ \forall j \in [1, k], S_{ji} = 
+  \begin{cases} 
+   1 & \text{if } R_iv_j > 0 \\
+   0       & \text{if } R_iv_j \le 0
+  \end{cases}
+\]
+	\end{itemize}
+	
+\end{frame}
+\begin{frame}{LSH}
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.5\textwidth]{b}
+		\label{fig:img1}
+	\end{figure}
+	\begin{itemize}[label = \textbullet]
+		\item Chia ma trận $S$ thành $b$ băng, mỗi băng $r$ hàng
+		\item Với mỗi băng, tiến hành băm phần của cột chữ ký thuộc băng đó vào bảng băm gồm c giỏ
+		\item Một cặp ứng cử viên là một cặp được băm vào cùng 1 giỏ trong 1 băng bất kì
+		\item Với mỗi cặp ứng cử viên, tính độ tương đồng và xây dựng tập $N(i)$
+	\end{itemize}
+\end{frame}
+\begin{frame}{Ước lượng rating}
+
+\begin{center}
+	$\hat{R_{xi}} = b_{xi} + \frac{\sum_{j \in H(x,i)}{sim(i,j)x(R_{xj} - b_{xj})}}{\sum_{j \in H(x,i)}{sim(i,j)}}$
+\end{center}
+Trong đó: \\
+\begin{itemize}[label = \textbullet]
+	\item $b_{xi} = \mu + b_x + b_i$
+	\item $\mu$ là giá trị trung bình rating trên toàn ma trận R
+	\item $b_x$ là chênh lệch giữa giá trị rating trung bình của người xem x với $\mu$
+	\item $b_i$ là chênh lệch giữa giá trị rating trung bình của bộ phim i với $\mu$
+\end{itemize}
 
 \end{frame}
 \subsection{Nhân tố ẩn}
 \begin{frame}{Nhân tố ẩn}
 	\begin{itemize}[label = \textbullet]
-		\item Gọi m là số lượng người xem, n là số lượng phim, k là số nhân tố ẩn
+		\item Gọi k là số nhân tố ẩn
 		\item $P_{kxm}$ là ma trận đặc tính tiềm ẩn của người xem
 		\item $Q_{kxn}$ là ma trận đặc tính tiềm ẩn của các bộ phim
 		\item Cần tìm $P,Q$ sao cho $P^{T}Q \approx R$
 	\end{itemize}
 \end{frame}
 \begin{frame}{Nhân tố ẩn}
-	Cost function: \\ 
-		$E = \sum\limits_{training}{(r_{xi} - \hat{r_{xi}})^2 + \frac{\lambda}{2}[\sum\limits_{x}{||P||^2} + \sum\limits_{i}{||Q||^2} + \sum\limits_{x}{||U||^2} + \sum\limits_{i}{||I||^2}]}$
+	Cực tiểu hàm mục tiêu: \\ 
+		$E = \sum\limits_{(x,i) \in R}{(R_{xi} - \hat{R_{xi}})^2 + \frac{\lambda}{2}[\sum\limits_{x}{||P||^2} + \sum\limits_{i}{||Q||^2} + \sum\limits_{x}{||U||^2} + \sum\limits_{i}{||I||^2}]}$
 	Trong đó: \\
 	\begin{itemize}[label = \textbullet]
-		\item $\hat{r_{xi}} = \mu + U_{x} + I_{i} + P_x^TQ_{i}$
+		\item $\hat{R_{xi}} = \mu + U_{x} + I_{i} + P_x^TQ_{i}$
 		\begin{itemize}[label = \textendash]
-			\item $\mu$ là giá trị trung bình rating của người xem	
+			\item $\mu$ là giá trị trung bình rating của ma trận R	
 			\item $U_{x}$ là giá trị bias của người xem x
 			\item $I_{i}$ là giá trị bias của bộ phim i
 		\end{itemize}
@@ -133,13 +221,16 @@
 \end{frame}
 \begin{frame}{Stochastic gradient descent}
 	Đặt $W = \frac{\lambda}{2}[\sum\limits_{x}{||P||^2} + \sum\limits_{i}{||Q||^2} + \sum\limits_{x}{||U||^2} + \sum\limits_{i}{||I||^2}] $ \\
-	$E_{xi} = [r_{xi} - (\mu + U_x + I_i + \sum\limits_{t = 1}^k{P_{tx}Q_{it}})]^2 + W$ \\
-	$\varepsilon_{xi} = 2 * (r_{xi} - \mu - U_x - I_i - \sum\limits_{t = 1}^k{P_{tx}Q_{it}})$
+	Xét người xem x và bộ phim i: \\
+	$E_{xi} = (R_{xi} - \hat{R_{xi}})^2 + W
+	 = [R_{xi} - (\mu + U_x + I_i + \sum\limits_{t = 1}^k{P_{tx}Q_{ti}})]^2 + W$ \\
+	$\varepsilon_{xi} = 2 * (R_{xi} - \mu - U_x - I_i - \sum\limits_{t = 1}^k{P_{tx}Q_{ti}})$ \\
+	Cập nhật tham số:
 	\begin{itemize}[label = \textbullet]
-		\item $P_{tx} = P_{tx} - lr\frac{\partial E_{xi}}{\partial P{tx}} = P_{tx} - lr(-\varepsilon_{xi}Q_{it} + \lambda P_{tx})$
-		\item $Q_{it} = Q_{it} - lr\frac{\partial E_{xi}}{\partial Q{it}} = Q_{it} - lr(-\varepsilon_{xi}P_{tx} + \lambda Q_{it})$
-		\item $U_x = U_x - lr\frac{\partial E_{xi}}{\partial U_x} = U_x - lr(-\varepsilon_{xi} + \lambda U_x)$
-		\item $I_i = I_i - lr\frac{\partial E_{xi}}{\partial I_i} = I_i - lr(-\varepsilon_{xi} + \lambda I_i)$
+		\item $P_{tx} = P_{tx} - \alpha\frac{\partial E_{xi}}{\partial P{tx}} = P_{tx} - \alpha(-\varepsilon_{xi}Q_{ti} + \lambda P_{tx})$
+		\item $Q_{ti} = Q_{ti} - \alpha\frac{\partial E_{xi}}{\partial Q{ti}} = Q_{ti} - \alpha(-\varepsilon_{xi}P_{tx} + \lambda Q_{ti})$
+		\item $U_x = U_x - \alpha\frac{\partial E_{xi}}{\partial U_x} = U_x - \alpha(-\varepsilon_{xi} + \lambda U_x)$
+		\item $I_i = I_i - \alpha\frac{\partial E_{xi}}{\partial I_i} = I_i - \alpha(-\varepsilon_{xi} + \lambda I_i)$
 	\end{itemize}
 
 \end{frame}
@@ -149,10 +240,10 @@
 			\STATE $Initialize$ $P, Q, U, I$
 			\FOR{$(x, i) \in training$}
 				\STATE $\varepsilon_{xi} = 2 * (r_{xi} - \mu - U_x - I_i - P_x^TQ_i)$
-				\STATE $P_x = P_x + lr*(\varepsilon_{xi}Q_i - \lambda P_x)$
-				\STATE $Q_i = Q_i + lr*(\varepsilon_{xi}P_x - \lambda Q_i)$
-				\STATE $U_x = U_x + lr*(\varepsilon_{xi} - \lambda U_x)$
-				\STATE $I_i = I_i + lr*(\varepsilon_{xi} - \lambda I_i)$
+				\STATE $P_x = P_x + \alpha*(\varepsilon_{xi}Q_i - \lambda P_x)$
+				\STATE $Q_i = Q_i + \alpha*(\varepsilon_{xi}P_x - \lambda Q_i)$
+				\STATE $U_x = U_x + \alpha*(\varepsilon_{xi} - \lambda U_x)$
+				\STATE $I_i = I_i + \alpha*(\varepsilon_{xi} - \lambda I_i)$
 			\ENDFOR
 		\end{algorithmic}
 		\caption{Stochastic gradient descent}
@@ -167,7 +258,44 @@
 	\end{itemize}
 \end{frame}
 \begin{frame}{Kết quả}
-
+Bảng kết quả so sánh giá trị hàm RMSE giữa 2 mô hình lọc cộng tác (CF) và nhân tố ẩn (LF).
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+ &\multicolumn{2}{c|}{ml-100k} & \multicolumn{2}{c|}{ml-latest}  \\
+\cline{2-5}
+ & Traing data & Test data & Training data & Test data  \\
+\hline
+CF & 0.85  & 0.95 & 0.98 & 1.03 \\
+\hline
+LF & 0.41 & 0.92& 0.90 & 0.92  \\
+\hline
+% etc. ...
+\end{tabular}
+\end{center}
+$\Rightarrow$ Mô hình nhân tố ẩn cho kết quả tốt hơn lọc cộng tác trên cả 2 bộ dữ liệu
+\end{frame}
+\begin{frame}{Kết quả}
+	Đồ thị biểu diễn quá trình học LF trên bộ dữ liệu ml-100k
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.9\textwidth]{ml-100k}
+		\label{fig:img1}
+	\end{figure}
+\end{frame}
+\begin{frame}{Kết quả}
+	Đồ thị biểu diễn quá trình học LF trên bộ dữ liệu ml-latest
+	\begin{figure}
+    		\centering
+		\includegraphics[width=0.9\textwidth]{ml-latest}
+		\label{fig:img1}
+	\end{figure}
+\end{frame}
+\begin{frame}
+	\Huge
+	\begin{center}
+		THANK YOU!
+	\end{center}
 \end{frame}
 \end{document}
 
