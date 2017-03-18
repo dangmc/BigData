@@ -1,2 +1,117 @@
 # BigData
 Maven for scala: "Maven for Scala" - http://alchim31.free.fr/m2e-scala/update-site
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.viettel.secintel</groupId>
+	<artifactId>security-intelligence_2.11</artifactId>
+	<version>0.0.5</version>
+	<properties>
+		<sparkVersion>2.0.1</sparkVersion>
+		<sparkScalaVersion>2.11</sparkScalaVersion>
+		<scalaVersion>2.11.8</scalaVersion>
+	</properties>
+	<build>
+		<sourceDirectory>src/main/scala</sourceDirectory>
+		<testSourceDirectory>src/test/scala</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<version>3.1.3</version>
+				<configuration>
+					<source>${scalaVersion}</source>
+					<target>${scalaVersion}</target>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scalaVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_${sparkScalaVersion}</artifactId>
+			<version>${sparkVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_${sparkScalaVersion}</artifactId>
+			<version>${sparkVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-mllib_${sparkScalaVersion}</artifactId>
+			<version>${sparkVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ocpsoft.prettytime</groupId>
+			<artifactId>prettytime-nlp</artifactId>
+			<version>3.2.7.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.7.3</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.uadetector</groupId>
+			<artifactId>uadetector-resources</artifactId>
+			<version>2014.04</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-core -->
+<dependency>
+    <groupId>org.deeplearning4j</groupId>
+    <artifactId>deeplearning4j-core</artifactId>
+    <version>0.8.0</version>
+</dependency>
+<dependency>
+    <groupId>org.deeplearning4j</groupId>
+    <artifactId>scalnet_2.11</artifactId>
+    <version>0.7.2</version>
+</dependency>
+	</dependencies>
+</project>
