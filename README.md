@@ -115,3 +115,5 @@ Maven for scala: "Maven for Scala" - http://alchim31.free.fr/m2e-scala/update-si
 </dependency>
 	</dependencies>
 </project>
+
+link data: http://alaska.epfl.ch/~dockermoocs/bigdata/wikipedia.dat
